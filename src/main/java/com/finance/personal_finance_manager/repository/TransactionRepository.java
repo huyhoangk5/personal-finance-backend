@@ -31,30 +31,30 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             "WHERE t.user.userId = :userId " +
             "AND t.category.categoryId = :categoryId " +
             "AND t.type = 'CHI' " +
-            "AND MONTH(t.date) = MONTH(CURRENT_DATE) " +
-            "AND YEAR(t.date) = YEAR(CURRENT_DATE)")
+            "AND EXTRACT(MONTH FROM t.date) = EXTRACT(MONTH FROM CURRENT_DATE) " +
+            "AND EXTRACT(YEAR FROM t.date) = EXTRACT(YEAR FROM CURRENT_DATE)")
     Double sumCurrentMonthSpending(@Param("userId") Long userId, @Param("categoryId") Long categoryId);
 
     @Query("SELECT c.categoryName, SUM(t.amount) FROM Transaction t JOIN t.category c " +
             "WHERE t.user.userId = :userId AND t.type = 'CHI' " +
-            "AND FUNCTION('DATE_FORMAT', t.date, '%Y-%m') = :month " +
+            "AND TO_CHAR(t.date, 'YYYY-MM') = :month " +
             "GROUP BY c.categoryName")
     List<Object[]> sumAmountByCategoryAndUserAndMonth(@Param("userId") Long userId, @Param("month") String month);
 
     void deleteByCategory(Category category);
 
-    @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.type = :type AND t.user.userId = :userId AND FUNCTION('DATE_FORMAT', t.date, '%Y-%m') = :month")
+    @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.type = :type AND t.user.userId = :userId AND TO_CHAR(t.date, 'YYYY-MM') = :month")
     Double sumAmountByTypeAndUserAndMonth(@Param("type") Category.TransactionType type, @Param("userId") Long userId, @Param("month") String month);
 
     @Query("SELECT c.categoryName, SUM(t.amount) FROM Transaction t JOIN t.category c " +
             "WHERE t.user.userId = :userId AND t.type = 'THU' " +
-            "AND FUNCTION('DATE_FORMAT', t.date, '%Y-%m') = :month " +
+            "AND TO_CHAR(t.date, 'YYYY-MM') = :month " +
             "GROUP BY c.categoryName")
     List<Object[]> sumIncomeByCategoryAndUserAndMonth(@Param("userId") Long userId, @Param("month") String month);
 
     @Query("SELECT t.date, SUM(t.amount) FROM Transaction t " +
             "WHERE t.user.userId = :userId AND t.type = :type " +
-            "AND FUNCTION('DATE_FORMAT', t.date, '%Y-%m') = :month " +
+            "AND TO_CHAR(t.date, 'YYYY-MM') = :month " +
             "GROUP BY t.date")
     List<Object[]> sumAmountByDayAndType(@Param("userId") Long userId,
                                          @Param("type") Category.TransactionType type,
