@@ -13,11 +13,8 @@ RUN ./mvnw dependency:go-offline -B
 
 # Copy source code and build the JAR
 COPY src src
-# Tạm thời xóa file application.properties (hoặc copy một file rỗng) để tránh lỗi encoding
-RUN rm -f src/main/resources/application.properties
-# Hoặc tạo file application.properties mới với nội dung đơn giản
-RUN echo "spring.application.name=personal-finance-manager" > src/main/resources/application.properties
 
+# Build the JAR (giữ nguyên file application.properties)
 RUN ./mvnw package -DskipTests
 
 # Stage 2: Run the application
