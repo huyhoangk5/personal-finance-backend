@@ -13,8 +13,7 @@ RUN ./mvnw dependency:go-offline -B
 
 # Copy source code and build the JAR
 COPY src src
-
-# Build the JAR (giữ nguyên file application.properties)
+# KHÔNG xóa hay sửa application.properties
 RUN ./mvnw package -DskipTests
 
 # Stage 2: Run the application
