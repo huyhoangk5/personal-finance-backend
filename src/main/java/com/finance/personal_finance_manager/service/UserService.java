@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -31,18 +32,29 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     // Các method cũ giữ nguyên
     public String registerUser(User user) {
         if (userRepository.existsByUsername(user.getUsername())) {
             return "Lỗi: Tên đăng nhập đã tồn tại!";
         }
+        // Mã hóa mật khẩu trước khi lưu
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
         return "Đăng ký thành công!";
     }
 
     public Optional<User> login(String username, String password) {
-        return userRepository.findByUsername(username)
-                .filter(user -> user.getPassword().equals(password));
+        Optional<User> userOpt = userRepository.findByUsername(username);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                return Optional.of(user);
+            }
+        }
+        return Optional.empty();
     }
 
     public Optional<User> findById(Long userId) {
@@ -69,7 +81,7 @@ public class UserService {
                 if (user == null) {
                     user = new User();
                     user.setUsername(email);
-                    user.setPassword(UUID.randomUUID().toString());
+                    user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString())); // Mã hóa
                     user.setEmail(email);
                     user.setFullName(name);
                     user = userRepository.save(user);
@@ -91,7 +103,7 @@ public class UserService {
         if (user == null) {
             user = new User();
             user.setUsername(username);
-            user.setPassword(randomPassword);
+            user.setPassword(passwordEncoder.encode(randomPassword));
             user.setEmail(email);
             user.setFullName("Facebook User");
             user = userRepository.save(user);
@@ -103,8 +115,8 @@ public class UserService {
         Optional<User> userOpt = userRepository.findById(userId);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            if (user.getPassword().equals(oldPassword)) {
-                user.setPassword(newPassword);
+            if (passwordEncoder.matches(oldPassword, user.getPassword())) {
+                user.setPassword(passwordEncoder.encode(newPassword));
                 userRepository.save(user);
                 return true;
             }
@@ -176,7 +188,7 @@ public class UserService {
             if (user == null) {
                 user = new User();
                 user.setUsername(username);
-                user.setPassword(randomPassword);
+                user.setPassword(passwordEncoder.encode(randomPassword));
                 user.setFullName("User " + phoneNumber);
                 user = userRepository.save(user);
             }
@@ -216,7 +228,7 @@ public class UserService {
             String randomPassword = UUID.randomUUID().toString();
             User user = new User();
             user.setUsername(username);
-            user.setPassword(randomPassword);
+            user.setPassword(passwordEncoder.encode(randomPassword));
             user.setFullName("User from QR");
             user = userRepository.save(user);
             session.user = user;
@@ -325,7 +337,7 @@ public class UserService {
             return false;
         }
         User user = tokenOpt.get().getUser();
-        user.setPassword(newPassword); // Nên mã hóa sau
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         passwordResetTokenRepository.delete(tokenOpt.get());
         return true;
