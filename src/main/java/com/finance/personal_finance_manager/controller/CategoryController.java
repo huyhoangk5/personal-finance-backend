@@ -19,26 +19,14 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
-    /**
-     * Lấy danh sách danh mục. Có thể lọc theo type.
-     * API 1: GET http://localhost:8080/api/categories (Lấy tất cả)
-     * API 2: GET http://localhost:8080/api/categories?type=THU (Chỉ lấy THU)
-     * API 3: GET http://localhost:8080/api/categories?type=CHI (Chỉ lấy CHI)
-     */
     @GetMapping
-    public ResponseEntity<List<Category>> getCategories(
-            @RequestParam(required = false) Category.TransactionType type) {
-
+    public ResponseEntity<List<Category>> getCategories(@RequestParam(required = false) Category.TransactionType type) {
         List<Category> categories;
-
         if (type != null) {
-            // Nếu có truyền type thì lọc theo type
             categories = categoryRepository.findByType(type);
         } else {
-            // Nếu không truyền gì thì lấy tất cả
             categories = categoryRepository.findAll();
         }
-
         return ResponseEntity.ok(categories);
     }
 

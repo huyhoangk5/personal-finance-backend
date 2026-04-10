@@ -1,6 +1,7 @@
 package com.finance.personal_finance_manager.controller;
 
 import com.finance.personal_finance_manager.model.User;
+import com.finance.personal_finance_manager.repository.UserRepository;
 import com.finance.personal_finance_manager.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +39,9 @@ public class UserController {
         }
     }
 
+    @Autowired
+    UserRepository userRepository;
+
     @PutMapping("/{userId}")
     public ResponseEntity<User> updateUser(@PathVariable Long userId, @RequestBody User userDetails) {
         Optional<User> optionalUser = userService.findById(userId);
@@ -46,7 +50,14 @@ public class UserController {
         }
         User user = optionalUser.get();
         if (userDetails.getFullName() != null) user.setFullName(userDetails.getFullName());
-        if (userDetails.getEmail() != null) user.setEmail(userDetails.getEmail());
+        if (userDetails.getEmail() != null) {
+            // Kiểm tra email đã tồn tại chưa (trừ chính user này)
+            Optional<User> existingEmail = userRepository.findByEmail(userDetails.getEmail());
+            if (existingEmail.isPresent() && !existingEmail.get().getUserId().equals(userId)) {
+                return ResponseEntity.badRequest().body(null); // Hoặc trả về lỗi cụ thể
+            }
+            user.setEmail(userDetails.getEmail());
+        }
         User updatedUser = userService.updateUser(user);
         return ResponseEntity.ok(updatedUser);
     }
