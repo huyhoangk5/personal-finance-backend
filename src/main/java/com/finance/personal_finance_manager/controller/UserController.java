@@ -27,6 +27,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
+        System.out.println("Login called with: " + credentials);
         String username = credentials.get("username");
         String password = credentials.get("password");
         Optional<User> user = userService.login(username, password);
