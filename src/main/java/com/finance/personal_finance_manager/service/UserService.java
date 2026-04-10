@@ -342,4 +342,38 @@ public class UserService {
         passwordResetTokenRepository.delete(tokenOpt.get());
         return true;
     }
+
+    public Optional<User> getUserByQrToken(String token) {
+        QrSession session = qrSessions.get(token);
+        if (session != null && session.used) {
+            return Optional.ofNullable(session.user);
+        }
+        return Optional.empty();
+    }
+
+    public void associateQrTokenWithUser(String token, User user) {
+        QrSession session = qrSessions.get(token);
+        if (session != null && !session.used) {
+            session.user = user;
+            session.used = true;
+        }
+    }
+
+    public Optional<User> registerWithQrToken(String token, String email, String password) {
+        QrSession session = qrSessions.get(token);
+        if (session == null || !session.isValid() || session.used) {
+            return Optional.empty();
+        }
+        // Tạo user mới
+        User user = new User();
+        user.setUsername(email); // hoặc tạo username riêng, ví dụ email
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setFullName("");
+        user = userRepository.save(user);
+        // Đánh dấu token đã dùng và gán user vào session
+        session.user = user;
+        session.used = true;
+        return Optional.of(user);
+    }
 }

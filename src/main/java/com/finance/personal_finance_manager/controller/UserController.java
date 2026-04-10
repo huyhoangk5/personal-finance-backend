@@ -5,6 +5,7 @@ import com.finance.personal_finance_manager.repository.UserRepository;
 import com.finance.personal_finance_manager.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -191,6 +192,25 @@ public class UserController {
         boolean success = userService.resetPassword(token, newPassword);
         if (success) {
             return ResponseEntity.ok("Đặt lại mật khẩu thành công");
+        } else {
+            return ResponseEntity.badRequest().body("Token không hợp lệ hoặc đã hết hạn");
+        }
+    }
+
+    @PostMapping("/qr-register")
+    public ResponseEntity<?> qrRegister(@RequestBody Map<String, String> payload) {
+        String token = payload.get("token");
+        String email = payload.get("email");
+        String password = payload.get("password");
+
+        // Kiểm tra email đã tồn tại
+        if (userRepository.findByEmail(email).isPresent()) {
+            return ResponseEntity.badRequest().body("Email đã tồn tại");
+        }
+
+        Optional<User> userOpt = userService.registerWithQrToken(token, email, password);
+        if (userOpt.isPresent()) {
+            return ResponseEntity.ok(userOpt.get());
         } else {
             return ResponseEntity.badRequest().body("Token không hợp lệ hoặc đã hết hạn");
         }
