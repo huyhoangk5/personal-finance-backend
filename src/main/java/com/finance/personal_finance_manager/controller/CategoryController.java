@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:5173") // Cho phép React gọi API không bị lỗi CORS
 @RestController
 @RequestMapping("/api/categories")
 public class CategoryController {
