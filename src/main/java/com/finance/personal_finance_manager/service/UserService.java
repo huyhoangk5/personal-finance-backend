@@ -46,8 +46,13 @@ public class UserService {
         return "Đăng ký thành công!";
     }
 
-    public Optional<User> login(String username, String password) {
-        Optional<User> userOpt = userRepository.findByUsername(username);
+    public Optional<User> login(String loginInput, String password) {
+        // Kiểm tra xem loginInput có phải email không
+        Optional<User> userOpt = userRepository.findByEmail(loginInput);
+        if (userOpt.isEmpty()) {
+            // Nếu không phải email, tìm theo username
+            userOpt = userRepository.findByUsername(loginInput);
+        }
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             if (passwordEncoder.matches(password, user.getPassword())) {
