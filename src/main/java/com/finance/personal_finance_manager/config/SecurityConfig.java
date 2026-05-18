@@ -38,7 +38,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
-                "https://personal-finance-frontend-l585.onrender.com"
+                "https://personal-finance-frontend-l585.onrender.com",
+                "https://personal-finance-frontend-woad-three.vercel.app"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
